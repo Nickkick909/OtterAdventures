@@ -20,6 +20,8 @@ public class Animal : MonoBehaviour
     public Attack[] currentAttacks;
     public Attack[] learnableAttacks;
 
+    public GameManager gm;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -42,7 +44,9 @@ public class Animal : MonoBehaviour
             speedStat = PlayerPrefs.GetFloat("PlayerSpeedStat", 1);
             level = PlayerPrefs.GetInt("PlayerLevel", 1);
             exp = PlayerPrefs.GetInt("PlayerExp", 0);
-            expForLevel = PlayerPrefs.GetInt("PlayerExpForLevel", 10);
+            expForLevel = PlayerPrefs.GetInt("PlayerExpForLevel", 20);
+
+            gm.AwardExp(0);
         }
     }
 
@@ -77,10 +81,12 @@ public class Animal : MonoBehaviour
             GameObject gm = GameObject.Find("Game Manager");
 
             gm.GetComponent<GameManager>().player = gameObject;
+
+            gm.GetComponent<GameManager>().playerUI = gameObject.GetComponent<PlayerUIManager>();
         }
 
-        if (gameObject.GetComponent<HealthBarManager>()){
-            gameObject.GetComponent<HealthBarManager>().healthVal = (int)( ((float)this.currentHealth / (float)this.maxHealth) * 100);
+        if (gameObject.GetComponent<PlayerUIManager>()){
+            gameObject.GetComponent<PlayerUIManager>().healthVal = (int)( ((float)this.currentHealth / (float)this.maxHealth) * 100);
         }
     }
 

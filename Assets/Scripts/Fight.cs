@@ -91,7 +91,7 @@ public class Fight : MonoBehaviour
         SceneManager.UnloadSceneAsync(currentScene);
 
 
-        HealthBarManager enemyHB = enemy.GetComponentInChildren<HealthBarManager>();
+        PlayerUIManager enemyHB = enemy.GetComponentInChildren<PlayerUIManager>();
         Debug.Log("Enemy HB" + enemyHB);
         GameObject enemyUIHealth = GameObject.Find("Fight UI/Enemy Health Bar");
         Debug.Log("Enemy UI Health: " + enemyUIHealth);
@@ -167,18 +167,18 @@ public class Fight : MonoBehaviour
                         Debug.Log("Enemy Defeated");
                         playerObj.GetComponent<PlayerMovement>().blockMovement = false;
 
-                        this.gm.awardExp(enemyAnimal.expWorth);
+                        this.gm.AwardExp(enemyAnimal.expWorth);
 
                         // Destroy(this.player);
-                        SceneManager.LoadScene("Main");
+                        // SceneManager.LoadScene("Main");
 
-                        var players = GameObject.FindGameObjectsWithTag("Player");
-                        foreach (GameObject player in players) {
-                            Debug.Log("Player!!");
-                            Debug.Log(player);
-                            Debug.Log(player.GetComponent<Animal>().exp);
-                        }
-                        // Destroy(enemy);
+                        // var players = GameObject.FindGameObjectsWithTag("Player");
+                        // foreach (GameObject player in players) {
+                        //     Debug.Log("Player!!");
+                        //     Debug.Log(player);
+                        //     Debug.Log(player.GetComponent<Animal>().exp);
+                        // }
+                        // // Destroy(enemy);
 
                         
                         break; // Get out of input fight loop
@@ -190,6 +190,9 @@ public class Fight : MonoBehaviour
     }
 
 
+    public void playerAttack(int power) {
+        Debug.Log("Attack power: " + power);
+    }
     public void playerLightAttack() {
         if (!attacking) {
             attacking = true;
@@ -232,14 +235,15 @@ public class Fight : MonoBehaviour
 
             if (this.enemyAnimate){
                 this.enemyAnimate.SetTrigger("BasicAttack");
-                yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("BasicAttack"));
+                yield return new WaitUntil(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
+                yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Enemy Basic Attack"));
                 playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat); 
             }
 
         } else if (playerAnimal.speedStat < enemyAnimal.speedStat) {
             // Enemy moves first
             this.enemyAnimate.SetTrigger("BasicAttack");
-            yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("BasicAttack"));
+            yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Enemy Basic Attack"));
             playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
 
             this.playerAnimate.SetTrigger("DropKick");
@@ -262,7 +266,8 @@ public class Fight : MonoBehaviour
 
             if (this.enemyAnimate){
                 this.enemyAnimate.SetTrigger("BasicAttack");
-                yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("BasicAttack"));
+                yield return new WaitUntil(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
+                yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Enemy Basic Attack"));
                 playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat); 
             }
 
@@ -282,11 +287,11 @@ public class Fight : MonoBehaviour
             Debug.Log("Enemy Defeated");
             playerObj.GetComponent<PlayerMovement>().blockMovement = false;
 
-            GameObject.Find("Game Manager").GetComponent<GameManager>().awardExp(10);
+            GameObject.Find("Game Manager").GetComponent<GameManager>().AwardExp(5);
 
             PlayerPrefs.SetInt("EnemyDead" + enemyAnimal.id, 1);
 
-            SceneManager.LoadScene("Main");
+            // SceneManager.LoadScene("Main");
         }
     }
 }
