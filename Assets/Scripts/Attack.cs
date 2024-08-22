@@ -16,4 +16,6 @@ public class Attack
 
 
     public string animation;
+
+    public string type;
 }

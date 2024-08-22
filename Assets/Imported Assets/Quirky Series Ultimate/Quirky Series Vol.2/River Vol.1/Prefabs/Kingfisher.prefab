@@ -649,7 +649,7 @@ Transform:
   m_GameObject: {fileID: 5697379818749971108}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
   m_Children:
   - {fileID: 97011977707886810}
   - {fileID: 5697379818693141275}
@@ -760,6 +760,7 @@ MonoBehaviour:
   id: 1
   currentAttacks: []
   learnableAttacks: []
+  gm: {fileID: 0}
 --- !u!1 &5697379819147580225
 GameObject:
   m_ObjectHideFlags: 0

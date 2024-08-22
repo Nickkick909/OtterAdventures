@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
     }
 
     public void AwardExp(int exp) {
-        var playerAnimal = this.player.GetComponent<Animal>();
+        Animal playerAnimal = this.player.GetComponent<Animal>();
 
         playerAnimal.exp += exp;
         PlayerPrefs.SetInt("PlayerExp", playerAnimal.exp);
@@ -69,6 +69,40 @@ public class GameManager : MonoBehaviour
 
         levelUpUI.SetActive(false);
         Debug.Log("Show level up end");
+
+        StartCoroutine("CheckLevelUpMoves");
+    }
+
+    IEnumerator CheckLevelUpMoves()
+    {
+        Animal playerAnimal = this.player.GetComponent<Animal>();
+
+        int currentLevel = playerAnimal.level;
+
+        foreach (Attack a in playerAnimal.learnableAttacks)
+        {
+            if (a.levelUnlocked == currentLevel)
+            {
+                Debug.Log("level up!!: " + a.type);
+                switch (a.type)
+                {
+                    case "lightAttack":
+                        PlayerPrefs.SetString("PlayerLightAttack", JsonUtility.ToJson(a));
+                        break;
+                    case "heavyAttack":
+                        PlayerPrefs.SetString("PlayerHeavyAttack", JsonUtility.ToJson(a));
+                        break;
+                    case "utilityAttack":
+                        PlayerPrefs.SetString("PlayerUtilityAttack", JsonUtility.ToJson(a));
+                        break;
+                    default:
+                        break;
+                }
+                    
+            }
+        }
+
+        yield return null;
 
         SceneManager.LoadScene("Main");
     }

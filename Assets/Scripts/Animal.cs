@@ -9,6 +9,8 @@ public class Animal : MonoBehaviour
     public float attackStat;
     public float defenceStat;
     public float speedStat;
+    public float currentStamina;
+    public float maxStamina;
 
     public int level;
     public int exp;
@@ -31,13 +33,16 @@ public class Animal : MonoBehaviour
 
         if (gameObject.tag == "Player") {
             float x = PlayerPrefs.GetFloat("PlayerX", 0);
-            float y = PlayerPrefs.GetFloat("PlayerY", 1);
+            float y = PlayerPrefs.GetFloat("PlayerY", 4);
             float z = PlayerPrefs.GetFloat("PlayerZ", 0);
 
             gameObject.transform.transform.position = new Vector3(x, y, z);
 
             maxHealth = PlayerPrefs.GetInt("PlayerMaxHealth", 10);
             currentHealth = PlayerPrefs.GetInt("PlayerCurrentHealth", 10);
+
+            maxStamina = PlayerPrefs.GetInt("PlayerMaxStamina", 3);
+            currentStamina = PlayerPrefs.GetInt("PlayerCurrentStamina", 3);
 
             attackStat = PlayerPrefs.GetFloat("PlayerAttackStat", 1);
             defenceStat = PlayerPrefs.GetFloat("PlayerDefenseStat",1);
@@ -46,7 +51,11 @@ public class Animal : MonoBehaviour
             exp = PlayerPrefs.GetInt("PlayerExp", 0);
             expForLevel = PlayerPrefs.GetInt("PlayerExpForLevel", 20);
 
-            gm.AwardExp(0);
+            if (gm)
+            {
+                gm.AwardExp(0);
+            }
+            
         }
     }
 
@@ -87,6 +96,7 @@ public class Animal : MonoBehaviour
 
         if (gameObject.GetComponent<PlayerUIManager>()){
             gameObject.GetComponent<PlayerUIManager>().healthVal = (int)( ((float)this.currentHealth / (float)this.maxHealth) * 100);
+            gameObject.GetComponent<PlayerUIManager>().staminaVal = this.currentStamina / this.maxStamina;
         }
     }
 

@@ -7,32 +7,41 @@ public class StartFight : MonoBehaviour
     public GameObject gameManager;
 
     public bool fightAnimationStarted;
+
+    public bool preventFightTrigger = true;
     public
 
     // Start is called before the first frame update
     void Start()
     {
         this.gameManager = GameObject.Find("Game Manager");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        preventFightTrigger = true;
+        StartCoroutine(StartGameImmunity());
     }
 
      // Gets called when the object enters the collider area 
     void OnTriggerEnter(Collider objectName)
     {   
-        gameObject.GetComponent<PlayerMovement>().blockMovement = true;
+        if (!this.preventFightTrigger)
+        {
+            gameObject.GetComponent<PlayerMovement>().blockMovement = true;
 
-        Animator enemyAnimator = objectName.gameObject.GetComponent<Animator>();
-        enemyAnimator.SetTrigger("Start Fight");
+            Animator enemyAnimator = objectName.gameObject.GetComponent<Animator>();
+            enemyAnimator.SetTrigger("Start Fight");
 
-        StartCoroutine(WaitForAnimation(objectName));
+            StartCoroutine(WaitForAnimation(objectName));
+        }
+        
+        
 
         
 
+    }
+
+    IEnumerator StartGameImmunity()
+    {
+        yield return new WaitForSeconds(2);
+        this.preventFightTrigger = false;
     }
 
     IEnumerator WaitForAnimation(Collider objectName) {
@@ -40,13 +49,14 @@ public class StartFight : MonoBehaviour
         yield return new WaitUntil(() => enemyAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
         yield return new WaitWhile(() => enemyAnimator.GetCurrentAnimatorStateInfo(0).IsName("Battle Start Jump"));
 
-Debug.Log("Start fight 123");
         Animal enemyAnimal = objectName.gameObject.GetComponent<Animal>();
 
         Animal playerAnimal = gameObject.GetComponent<Animal>();
         // Save current player stats to transfer to the fight scene
         PlayerPrefs.SetInt("PlayerMaxHealth", playerAnimal.maxHealth);
         PlayerPrefs.SetInt("PlayerCurrentHealth", playerAnimal.currentHealth);
+        PlayerPrefs.SetFloat("PlayerMaxStamina", playerAnimal.maxStamina);
+        PlayerPrefs.SetFloat("PlayerCurrentStamina", playerAnimal.currentStamina);
         PlayerPrefs.SetFloat("PlayerAttackStat", playerAnimal.attackStat);
         PlayerPrefs.SetFloat("PlayerDefenceStat", playerAnimal.defenceStat);
         PlayerPrefs.SetFloat("PlayerSpeedStat", playerAnimal.speedStat);

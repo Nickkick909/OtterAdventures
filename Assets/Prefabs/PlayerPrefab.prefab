@@ -202,7 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 754b93971ce457143ba8e4cd6a649e86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 0.5
+  movementSpeed: 10
   blockMovement: 0
   playerAnimator: {fileID: 0}
 --- !u!114 &189164057973380437
@@ -222,13 +222,48 @@ MonoBehaviour:
   attackStat: 10
   defenceStat: 1
   speedStat: 0
+  currentStamina: 3
+  maxStamina: 3
   level: 0
   exp: 0
   expWorth: 0
   expForLevel: 0
   id: 0
-  currentAttacks: []
-  learnableAttacks: []
+  currentAttacks:
+  - name: Scratch
+    description: Use those sharp claws of yours!
+    staminaCost: 1
+    attackPower: 10
+    healPower: 0
+    levelUnlocked: 1
+    animation: 
+    type: lightAttack
+  - name: '-'
+    description: '-'
+    staminaCost: 0
+    attackPower: 0
+    healPower: 0
+    levelUnlocked: 0
+    animation: 
+    type: heavyAttack
+  - name: '-'
+    description: '-'
+    staminaCost: 0
+    attackPower: 0
+    healPower: 0
+    levelUnlocked: 0
+    animation: 
+    type: utilityAttack
+  learnableAttacks:
+  - name: Play time
+    description: Take a tiny break to recharge with a fun toy.
+    staminaCost: 0
+    attackPower: 0
+    healPower: 10
+    levelUnlocked: 2
+    animation: 
+    type: utilityAttack
+  gm: {fileID: 0}
 --- !u!114 &189164057973380436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,6 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
   fightAnimationStarted: 0
+  preventFightTrigger: 1
 --- !u!54 &189164057973380438
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -273,6 +309,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthBar: {fileID: 0}
   healthVal: 0
+  levelTMP: {fileID: 0}
+  expTMP: {fileID: 0}
+  lightAttackName: {fileID: 0}
+  lightAttackDescription: {fileID: 0}
+  lightAttackStamina: {fileID: 0}
+  lightAttackPower: {fileID: 0}
+  lightAttackButton: {fileID: 0}
+  heavyAttackName: {fileID: 0}
+  heavyAttackDescription: {fileID: 0}
+  heavyAttackStamina: {fileID: 0}
+  heavyAttackPower: {fileID: 0}
+  heavyAttackButton: {fileID: 0}
+  utilityAttackName: {fileID: 0}
+  utilityAttackDescription: {fileID: 0}
+  utilityAttackStamina: {fileID: 0}
+  utilityAttackPower: {fileID: 0}
+  utilityAttackButton: {fileID: 0}
+  staminaBar: {fileID: 0}
+  staminaVal: 0
 --- !u!95 &2353227107932922657
 Animator:
   serializedVersion: 3
