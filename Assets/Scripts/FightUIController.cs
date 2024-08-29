@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class FightUIController : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [SerializeField] GameObject fightStarted;
+    [SerializeField] GameObject chooseAttack;
+
     void Start()
     {
-        GameObject.Find("FightStartedPanel").SetActive(true);
+        fightStarted.SetActive(true);
+        HideChooseAttack();
         StartCoroutine(HideFightStarted());
     }
 
@@ -18,7 +21,21 @@ public class FightUIController : MonoBehaviour
     }
 
     IEnumerator HideFightStarted() {
-         yield return new WaitForSeconds(1.5f);
-        GameObject.Find("FightStartedPanel").SetActive(false);;
+        yield return new WaitForSeconds(1.5f);
+        fightStarted.SetActive(false);
+
+        ShowChooseAttack();
     }
+
+    public void HideChooseAttack()
+    {
+        chooseAttack.SetActive(false);
+    }
+
+    public void ShowChooseAttack()
+    {
+        chooseAttack.SetActive(true);
+    }
+
+
 }

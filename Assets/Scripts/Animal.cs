@@ -42,7 +42,7 @@ public class Animal : MonoBehaviour
             currentHealth = PlayerPrefs.GetInt("PlayerCurrentHealth", 10);
 
             maxStamina = PlayerPrefs.GetInt("PlayerMaxStamina", 3);
-            currentStamina = PlayerPrefs.GetInt("PlayerCurrentStamina", 3);
+            currentStamina = PlayerPrefs.GetFloat("PlayerCurrentStamina", 3);
 
             attackStat = PlayerPrefs.GetFloat("PlayerAttackStat", 1);
             defenceStat = PlayerPrefs.GetFloat("PlayerDefenseStat",1);
@@ -100,8 +100,78 @@ public class Animal : MonoBehaviour
         }
     }
 
-    public void PrintFloat (float theValue) {
-        Debug.Log ("PrintFloat is called with a value of " + theValue);
+
+  
+
+    public void UseLightAttack(Attack useAttack, Animal target)
+    {
+        // Get info about light attack
+        //Attack useAttack = GetAttackInfo("lightAttack");
+
+        if (useAttack != null)
+        {
+            target.TakeDamage(useAttack.attackPower);
+            UseStamina(useAttack.staminaCost);
+        }
+        
     }
-    
+
+    public void UseHeavyAttack(Attack useAttack, Animal target)
+    {
+
+    }
+
+    public void UseUtilityAttack(Attack useAttack, Animal target)
+    {
+        // Get info about light attack
+        //Attack useAttack = GetAttackInfo("lightAttack");
+
+        if (useAttack != null)
+        {
+            target.TakeDamage(useAttack.attackPower);
+            UseStamina(useAttack.staminaCost);
+        }
+    }
+
+    public void UseAttackOfType(string attackType, Animal target)
+    {
+        foreach (Attack a in currentAttacks)
+        {
+            if (a.type == attackType)
+            {
+                if (attackType == "lightAttack")
+                {
+                    UseLightAttack(a, target);
+                } else if (attackType == "heavyAttack")
+                {
+                    UseHeavyAttack(a, target);
+                } else if (attackType == "utilityAttack")
+                {
+                    UseUtilityAttack(a, target);
+                }
+            }
+        }
+
+    }
+
+    public void TakeDamage(int damage)
+    {
+        Debug.Log("Damage Taken: " + gameObject.name + ": " + damage.ToString());
+        currentHealth -= damage;
+    }
+
+    public void UseStamina(int cost)
+    {
+        currentStamina -= cost;
+    }
+
+    public void Heal(int hp)
+    {
+        currentHealth += hp;
+    }
+    public void GiveStamina(float stamina)
+    {
+        currentStamina += stamina;
+    }
+
 }

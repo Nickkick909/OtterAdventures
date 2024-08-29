@@ -224,20 +224,21 @@ MonoBehaviour:
   speedStat: 0
   currentStamina: 3
   maxStamina: 3
-  level: 0
+  level: 1
   exp: 0
   expWorth: 0
-  expForLevel: 0
+  expForLevel: 10
   id: 0
   currentAttacks:
   - name: Scratch
     description: Use those sharp claws of yours!
     staminaCost: 1
-    attackPower: 10
+    attackPower: 2
     healPower: 0
     levelUnlocked: 1
     animation: 
     type: lightAttack
+    attackUses: 0
   - name: '-'
     description: '-'
     staminaCost: 0
@@ -246,6 +247,7 @@ MonoBehaviour:
     levelUnlocked: 0
     animation: 
     type: heavyAttack
+    attackUses: 0
   - name: '-'
     description: '-'
     staminaCost: 0
@@ -254,6 +256,7 @@ MonoBehaviour:
     levelUnlocked: 0
     animation: 
     type: utilityAttack
+    attackUses: 0
   learnableAttacks:
   - name: Play time
     description: Take a tiny break to recharge with a fun toy.
@@ -263,6 +266,7 @@ MonoBehaviour:
     levelUnlocked: 2
     animation: 
     type: utilityAttack
+    attackUses: 0
   gm: {fileID: 0}
 --- !u!114 &189164057973380436
 MonoBehaviour:

@@ -16,6 +16,9 @@ public class Fight : MonoBehaviour
 
     public bool attacking = false;
 
+    [SerializeField] float staminaRegen = 1;
+    [SerializeField] FightUIController fightUI;
+
 
     void Start()
     {
@@ -239,6 +242,7 @@ public class Fight : MonoBehaviour
 
     public void StartTurnAttacks(string playerAttackType)
     {
+        fightUI.HideChooseAttack();
         // Check if player is currently attacking to prevent multiple attacks
         if (!attacking)
         {
@@ -267,11 +271,12 @@ public class Fight : MonoBehaviour
             }
         }
 
-
+        
     }
 
     IEnumerator PlayAttacksAndWait(string fasterAnimal, string playerAttackType, Animal playerAnimal, Animal enemyAnimal)
     {
+        CheckStaminaForAttacks();
         Debug.Log("Starting attack turns");
         if (fasterAnimal == "player")
         {
@@ -290,6 +295,12 @@ public class Fight : MonoBehaviour
         attacking = false;
 
         yield return null;
+
+        playerAnimal.GiveStamina(staminaRegen);
+        enemyAnimal.GiveStamina(staminaRegen);
+
+        fightUI.ShowChooseAttack();
+        playerAnimal.GiveStamina(0.5f);
     }
 
     IEnumerator TriggerPlayerAttack(string playerAttackType, Animal playerAnimal, Animal enemyAnimal)
@@ -297,8 +308,10 @@ public class Fight : MonoBehaviour
         this.playerAnimate.SetTrigger("DropKick");
         yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
         yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("DropKick"));
-        enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-        playerAnimal.currentStamina -= 1;
+        //enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
+        //playerAnimal.currentStamina -= 1;
+
+        playerAnimal.UseAttackOfType(playerAttackType, enemyAnimal);
 
         CheckEnemyDead(enemyAnimal, playerAnimal.gameObject);
     }
@@ -311,6 +324,9 @@ public class Fight : MonoBehaviour
         yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Enemy Basic Attack"));
         playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
         enemyAnimal.currentStamina -= 1;
+
+        // TODO: add in AI for picking move type
+        playerAnimal.UseAttackOfType("lightAttack", playerAnimal);
     }
 
 
@@ -383,7 +399,6 @@ public class Fight : MonoBehaviour
 
     void CheckEnemyDead (Animal enemyAnimal, GameObject playerObj) {
         if (enemyAnimal.currentHealth < 1) {
-            Debug.Log("Enemy Defeated");
             playerObj.GetComponent<PlayerMovement>().blockMovement = false;
 
             GameObject.Find("Game Manager").GetComponent<GameManager>().AwardExp(5);
@@ -393,6 +408,8 @@ public class Fight : MonoBehaviour
 
             PlayerPrefs.SetFloat("PlayerCurrentHealth", playerAnimal.currentHealth);
             PlayerPrefs.SetFloat("PlayerCurrentStamina", playerAnimal.currentStamina);
+
+            playerAnimal.GiveStamina(1);
 
         }
     }
@@ -456,6 +473,33 @@ public class Fight : MonoBehaviour
                 playerUI.SetUtilityAttack(a);
             }
         }
-        
+
+
+        CheckStaminaForAttacks();
+    }
+
+    void CheckStaminaForAttacks()
+    {
+
+        Debug.Log("Checking stamina for attacks");
+        GameObject localPlayer = GameObject.FindGameObjectsWithTag("Player")[0];
+        Animal playerAnimal = localPlayer.GetComponent<Animal>();
+
+        float currentStamina = playerAnimal.currentStamina;
+        Attack[] playerAttacks = playerAnimal.currentAttacks;
+        PlayerUIManager playerUI = localPlayer.GetComponent<PlayerUIManager>();
+
+        foreach (Attack a in playerAttacks)
+        {
+            if (currentStamina < a.staminaCost)
+            {
+                playerUI.DisableAttacks(a.type);
+            } else
+            {
+                playerUI.EnableAttacks(a.type);
+            }
+        }
+
+
     }
 }

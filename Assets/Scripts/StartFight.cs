@@ -9,7 +9,6 @@ public class StartFight : MonoBehaviour
     public bool fightAnimationStarted;
 
     public bool preventFightTrigger = true;
-    public
 
     // Start is called before the first frame update
     void Start()

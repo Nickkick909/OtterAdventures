@@ -107,4 +107,34 @@ public class PlayerUIManager : MonoBehaviour
             utilityAttackButton.interactable = true;
         }
     }
+
+    public void DisableAttacks(string attackToDisable)
+    {
+        if (attackToDisable == "lightAttack")
+        {
+            lightAttackButton.interactable = false;
+        } else if (attackToDisable == "heavyAttack")
+        {
+            heavyAttackButton.interactable = false;
+        } else if (attackToDisable == "utilityAttack")
+        {
+            utilityAttackButton.interactable = false;
+        }
+    }
+
+    public void EnableAttacks(string attackToDisable)
+    {
+        if (attackToDisable == "lightAttack")
+        {
+            lightAttackButton.interactable = true;
+        }
+        else if (attackToDisable == "heavyAttack" && heavyAttackName.text != "-")
+        {
+            heavyAttackButton.interactable = true;
+        }
+        else if (attackToDisable == "utilityAttack" && utilityAttackName.text != "-")
+        {
+            utilityAttackButton.interactable = true;
+        }
+    }
 }
