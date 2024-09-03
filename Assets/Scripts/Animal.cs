@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Animal : MonoBehaviour
 {
@@ -77,9 +78,16 @@ public class Animal : MonoBehaviour
 
             if (gameObject.tag == "Enemy") {
                 PlayerPrefs.SetInt("EnemyDead" + id, 1);
+
+                Destroy(gameObject);
+            } else if (gameObject.tag == "Player")
+            {
+                PlayerPrefs.DeleteAll();
+
+                SceneManager.LoadScene("GameOver");
             }
 
-            Destroy(gameObject);
+
         }
 
         if (PlayerPrefs.GetInt("EnemyDead" + id) == 1) {
@@ -156,7 +164,6 @@ public class Animal : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        Debug.Log("Damage Taken: " + gameObject.name + ": " + damage.ToString());
         currentHealth -= damage;
     }
 
@@ -174,4 +181,24 @@ public class Animal : MonoBehaviour
         currentStamina += stamina;
     }
 
+
+    public void GetCurrentCondition()
+    {
+        Debug.Log("Checking current condition");
+        int savedHealth = PlayerPrefs.GetInt("PlayerCurrentHealth");
+        float savedStamina = PlayerPrefs.GetFloat("PlayerCurrentStamina");
+
+        Debug.Log("Health: " + savedHealth.ToString() + "  Stamina: " + savedStamina.ToString());
+        if (savedHealth != 0)
+        {
+            this.currentHealth = savedHealth;
+        }
+
+        if (savedStamina != 0)
+        {
+            this.currentStamina = savedStamina;
+        }
+        
+        
+    }
 }

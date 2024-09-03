@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        GameObject.FindGameObjectWithTag("Player").GetComponent<Animal>().GetCurrentCondition();
     }
 
     // Update is called once per frame
@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviour
         playerAnimal.exp += exp;
         PlayerPrefs.SetInt("PlayerExp", playerAnimal.exp);
         Debug.Log("Experince awarded to player: " + exp);
-        Debug.Log(playerAnimal.exp);
 
         if (playerAnimal.exp >= playerAnimal.expForLevel) {
             playerAnimal.exp -= playerAnimal.expForLevel;
@@ -68,7 +67,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(2);
 
         levelUpUI.SetActive(false);
-        Debug.Log("Show level up end");
 
         StartCoroutine("CheckLevelUpMoves");
     }
@@ -83,7 +81,6 @@ public class GameManager : MonoBehaviour
         {
             if (a.levelUnlocked == currentLevel)
             {
-                Debug.Log("level up!!: " + a.type);
                 switch (a.type)
                 {
                     case "lightAttack":
@@ -106,4 +103,5 @@ public class GameManager : MonoBehaviour
 
         SceneManager.LoadScene("Main");
     }
+
 }

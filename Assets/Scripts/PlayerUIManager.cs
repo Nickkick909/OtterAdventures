@@ -40,11 +40,6 @@ public class PlayerUIManager : MonoBehaviour
     public Image staminaBar;
     public float staminaVal;
 
-
-    void Start () {
-        
-    } 
-
     // Update is called once per frame
     void Update()
     {
@@ -60,12 +55,10 @@ public class PlayerUIManager : MonoBehaviour
     }
 
     public void SetLevel(int level) {
-        Debug.Log("Set Level: " + level.ToString());
         levelTMP.text = "Lvl: " + level.ToString();
     }
 
     public void SetExp(int exp, int maxExp) {
-        Debug.Log("Set EXP: " + exp.ToString() + "/" + maxExp.ToString());
         expTMP.text = "Exp: " + exp.ToString() + "/" + maxExp.ToString();
     }
 
