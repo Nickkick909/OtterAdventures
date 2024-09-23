@@ -8,7 +8,7 @@ public class PlayerUIManager : MonoBehaviour
 {
 
     public ProgressBar healthBar;
-    public int healthVal;
+    public float healthVal;
 
     public TMP_Text levelTMP;
     public TMP_Text expTMP;
@@ -40,18 +40,97 @@ public class PlayerUIManager : MonoBehaviour
     public Image staminaBar;
     public float staminaVal;
 
-    // Update is called once per frame
+    private float slowHealthVal;
+    private float healthTimer = 0;
+
+    private float slowStaminaVal;
+    private float staminaTimer = 0;
+
+    private float healthBarAnimationTime= 100f;
+    private float staminaBarAnimationTime = 1f;
+
+
+    public bool healthBarAtZero = false;
+
+    void Start()
+    {
+        healthBarAtZero = false;
+    }
     void Update()
     {
         if (this.healthBar != null)
         {
-            this.healthBar.BarValue = healthVal;
+            //this.healthBar.BarValue = healthVal;
+            //Debug.Log("Slow health: " + slowHealthVal + " -- Health val: " + healthVal + " --- bar value: " + healthBar.BarValue + " -- health timer: " + healthTimer);
+            if (slowHealthVal != healthVal)
+            {
+                slowHealthVal = Mathf.MoveTowards(slowHealthVal, healthVal, healthBarAnimationTime * Time.deltaTime);
+                healthTimer += Time.deltaTime;
+                //Debug.Log("Not there");
 
-            if (staminaBar != null)
-                staminaBar.fillAmount = staminaVal;
-        }
+                healthBarAtZero = false;
+            }
+            else
+            {
+                healthTimer = 0;
+                //resetting interpolator
+                //Debug.Log("Here?");
+
+                if (healthBar.BarValue == 0)
+                {
+                    //Time.timeScale = 0;
+                    healthBarAtZero = true;
+                } else
+                {
+                    healthBarAtZero = false;
+                }
+            }
+
+            healthBar.BarValue = slowHealthVal;
+
             
 
+            if (staminaBar != null)
+            {
+                if (slowStaminaVal != staminaVal)
+                {
+                    slowStaminaVal = Mathf.MoveTowards(slowStaminaVal, staminaVal, staminaBarAnimationTime * Time.deltaTime);
+                    staminaTimer += Time.deltaTime;
+                }
+                else
+                {
+                    staminaTimer = 0;
+                    //resetting interpolator
+                }
+
+                staminaBar.fillAmount = slowStaminaVal;
+            }
+                //staminaBar.fillAmount = slowHealthVal;
+        }
+
+
+        
+    }
+    public void UpdateHealthBar(float newVal)
+    {
+        
+        if ( healthVal != newVal)
+        {
+            healthVal = newVal;
+        }
+    }
+
+    public void UpdateStaminaBar(float newVal)
+    {
+
+        if (staminaVal != newVal)
+        {
+            staminaVal = newVal;
+        }
+    }
+    IEnumerator MoveSlowly()
+    {
+        yield return null;
     }
 
     public void SetLevel(int level) {
@@ -92,8 +171,8 @@ public class PlayerUIManager : MonoBehaviour
     {
         utilityAttackName.text = a.name;
         utilityAttackDescription.text = a.description;
-        utilityAttackStamina.text = a.staminaCost.ToString();
-        utilityAttackPower.text = a.attackPower.ToString();
+        utilityAttackStamina.text = a.attackUses.ToString();
+        utilityAttackPower.text = a.healPower.ToString();
 
         if (a.name != "-")
         {
@@ -101,33 +180,35 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    public void DisableAttacks(string attackToDisable)
+    public void DisableAttacks(AttackType attackToDisable)
     {
-        if (attackToDisable == "lightAttack")
+        if (attackToDisable == AttackType.Light)
         {
             lightAttackButton.interactable = false;
-        } else if (attackToDisable == "heavyAttack")
+        } else if (attackToDisable == AttackType.Heavy)
         {
             heavyAttackButton.interactable = false;
-        } else if (attackToDisable == "utilityAttack")
+        } else if (attackToDisable == AttackType.Utility)
         {
             utilityAttackButton.interactable = false;
         }
     }
 
-    public void EnableAttacks(string attackToDisable)
+    public void EnableAttacks(AttackType attackToDisable)
     {
-        if (attackToDisable == "lightAttack")
+        if (attackToDisable == AttackType.Light)
         {
             lightAttackButton.interactable = true;
         }
-        else if (attackToDisable == "heavyAttack" && heavyAttackName.text != "-")
+        else if (attackToDisable == AttackType.Heavy && heavyAttackName.text != "-")
         {
             heavyAttackButton.interactable = true;
         }
-        else if (attackToDisable == "utilityAttack" && utilityAttackName.text != "-")
+        else if (attackToDisable == AttackType.Utility && utilityAttackName.text != "-")
         {
             utilityAttackButton.interactable = true;
         }
     }
+
+   
 }

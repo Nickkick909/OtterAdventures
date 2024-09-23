@@ -25,12 +25,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189164056921302199}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 189164057973380435}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &189164056921302186
 MeshRenderer:
@@ -43,6 +44,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -126,14 +128,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189164057973380446}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 189164056921302184}
   - {fileID: 8344971883358632536}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &189164057973380433
 MeshRenderer:
@@ -146,6 +149,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -184,8 +188,17 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189164057973380446}
   m_Material: {fileID: 13400000, guid: 17d2e840b200bff41bf895d30a941fec, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 0
+  serializedVersion: 2
   m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
@@ -217,10 +230,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88da41ff27a367b45b2e936ec40cc720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 0
-  currentHealth: 0
+  maxHealth: 25
+  currentHealth: 25
   attackStat: 10
-  defenceStat: 1
   speedStat: 0
   currentStamina: 3
   maxStamina: 3
@@ -235,38 +247,57 @@ MonoBehaviour:
     staminaCost: 1
     attackPower: 2
     healPower: 0
+    type: 0
     levelUnlocked: 1
     animation: 
-    type: lightAttack
+    typeHeal: 0
     attackUses: 0
+    maxAttackUses: 0
   - name: '-'
     description: '-'
     staminaCost: 0
     attackPower: 0
     healPower: 0
+    type: 1
     levelUnlocked: 0
     animation: 
-    type: heavyAttack
+    typeHeal: 0
     attackUses: 0
+    maxAttackUses: 0
   - name: '-'
     description: '-'
     staminaCost: 0
     attackPower: 0
     healPower: 0
+    type: 2
     levelUnlocked: 0
     animation: 
-    type: utilityAttack
+    typeHeal: 0
     attackUses: 0
+    maxAttackUses: 0
   learnableAttacks:
   - name: Play time
-    description: Take a tiny break to recharge with a fun toy.
+    description: Have some fun and regen your stamina.
     staminaCost: 0
     attackPower: 0
-    healPower: 10
+    healPower: 2
+    type: 2
     levelUnlocked: 2
     animation: 
-    type: utilityAttack
+    typeHeal: 1
+    attackUses: 3
+    maxAttackUses: 3
+  - name: Cannon Ball
+    description: Spin into a small ball and smash into the enemy at full speed.
+    staminaCost: 3
+    attackPower: 5
+    healPower: 2
+    type: 1
+    levelUnlocked: 3
+    animation: 
+    typeHeal: 1
     attackUses: 0
+    maxAttackUses: 0
   gm: {fileID: 0}
 --- !u!114 &189164057973380436
 MonoBehaviour:
@@ -290,10 +321,21 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189164057973380446}
-  serializedVersion: 2
+  serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 0
@@ -332,9 +374,10 @@ MonoBehaviour:
   utilityAttackButton: {fileID: 0}
   staminaBar: {fileID: 0}
   staminaVal: 0
+  healthBarAtZero: 0
 --- !u!95 &2353227107932922657
 Animator:
-  serializedVersion: 3
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -347,15 +390,18 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &8569143985942347861
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 189164057973380435}
     m_Modifications:
     - target: {fileID: 370698950236338700, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
@@ -365,18 +411,6 @@ PrefabInstance:
     - target: {fileID: 370698950236338701, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
       propertyPath: m_RootOrder
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 370698950236338701, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 370698950236338701, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 370698950236338701, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 370698950236338701, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
       propertyPath: m_LocalPosition.x
@@ -419,6 +453,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fd25a8d3adc1364398e9e47a20c8ec4, type: 3}
 --- !u!4 &8344971883358632536 stripped
 Transform:

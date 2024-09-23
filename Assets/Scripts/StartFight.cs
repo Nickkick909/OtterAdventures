@@ -10,7 +10,6 @@ public class StartFight : MonoBehaviour
 
     public bool preventFightTrigger = true;
 
-    // Start is called before the first frame update
     void Start()
     {
         this.gameManager = GameObject.Find("Game Manager");
@@ -18,28 +17,28 @@ public class StartFight : MonoBehaviour
         StartCoroutine(StartGameImmunity());
     }
 
-     // Gets called when the object enters the collider area 
     void OnTriggerEnter(Collider objectName)
     {   
-        if (!this.preventFightTrigger)
+        if (objectName.gameObject.tag == "Enemy")
         {
-            gameObject.GetComponent<PlayerMovement>().blockMovement = true;
+            if (!this.preventFightTrigger)
+            {
+                preventFightTrigger = true;
+                gameObject.GetComponent<PlayerMovement>().blockMovement = true;
 
-            Animator enemyAnimator = objectName.gameObject.GetComponent<Animator>();
-            enemyAnimator.SetTrigger("Start Fight");
+                Animator enemyAnimator = objectName.gameObject.GetComponent<Animator>();
+                enemyAnimator.SetTrigger("Start Fight");
 
-            StartCoroutine(WaitForAnimation(objectName));
+                StartCoroutine(WaitForAnimation(objectName));
+            }
         }
-        
-        
-
         
 
     }
 
     IEnumerator StartGameImmunity()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(0.5f);
         this.preventFightTrigger = false;
     }
 
@@ -57,27 +56,21 @@ public class StartFight : MonoBehaviour
         PlayerPrefs.SetFloat("PlayerMaxStamina", playerAnimal.maxStamina);
         PlayerPrefs.SetFloat("PlayerCurrentStamina", playerAnimal.currentStamina);
         PlayerPrefs.SetFloat("PlayerAttackStat", playerAnimal.attackStat);
-        PlayerPrefs.SetFloat("PlayerDefenceStat", playerAnimal.defenceStat);
         PlayerPrefs.SetFloat("PlayerSpeedStat", playerAnimal.speedStat);
         PlayerPrefs.SetInt("PlayerLevel", playerAnimal.level);
         PlayerPrefs.SetInt("PlayerExp", playerAnimal.exp);
         PlayerPrefs.SetInt("PlayerExpForLevel", playerAnimal.expForLevel);
         
 
-        Debug.Log("Entered collision with " + objectName.gameObject.name);
 
         int enemyId = enemyAnimal.id;
 
-        if (PlayerPrefs.GetInt("EnemyDead"+enemyId) == 1) {
-            Debug.Log("Enemy already killed");
-        } else {
+        if (PlayerPrefs.GetInt("EnemyDead"+enemyId) != 1) {
             // Not killed so start a fight
-            gameManager.GetComponent<Fight>().startFight(objectName.gameObject);
+            gameManager.GetComponent<Fight>().StartFight(objectName.gameObject);
         }
 
-    }
-
-    public void goToFightAfterAnimation ()  {
+        preventFightTrigger = false;
 
     }
 

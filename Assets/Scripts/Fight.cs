@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 public class Fight : MonoBehaviour
 {
@@ -20,6 +22,7 @@ public class Fight : MonoBehaviour
     [SerializeField] FightUIController fightUI;
 
     [SerializeField] float lowestStaminaCost = 999;
+    [SerializeField] int avaiableAttackUses = 0;
     bool attacksHaveBeenSet = false;
 
     [SerializeField] GameObject outOfStaminaUI;
@@ -60,7 +63,7 @@ public class Fight : MonoBehaviour
         //}
     }
 
-    public void startFight(GameObject enemy) {
+    public void StartFight(GameObject enemy) {
         if (!fightStarted) {
             fightStarted = true;
              enemy.GetComponent<Collider>().enabled = false;
@@ -69,38 +72,24 @@ public class Fight : MonoBehaviour
             PlayerPrefs.SetFloat("PlayerX", this.player.transform.transform.position.x);
             PlayerPrefs.SetFloat("PlayerY", this.player.transform.transform.position.y);
             PlayerPrefs.SetFloat("PlayerZ", this.player.transform.transform.position.z);
-            Debug.Log("**************Start Fight Function Begins***********");
-
-            this.player.transform.position = new Vector3(0, 1, 1);
 
             DontDestroyOnLoad(enemy.transform.parent.gameObject);
-            // DontDestroyOnLoad(player);
-            // DontDestroyOnLoad(gameObject);
-
-            Debug.Log("Fight started with enemy: " + enemy.name);
-
             
-            
-            StartCoroutine(LoadYourAsyncScene(enemy.transform.parent.gameObject));
-
-            // SceneManager.LoadScene("Battle");
-
-            // SceneManger
-        
-            
-            
-            // StartCoroutine(WaitForKeyDown(enemy, this.player));
+            StartCoroutine(LoadYourAsyncScene(enemy.transform.parent.gameObject, this.player));
         }
        
     }
 
-    IEnumerator LoadYourAsyncScene(GameObject enemy)
+    IEnumerator LoadYourAsyncScene(GameObject enemy, GameObject player)
     {
+        enemy.transform.SetParent(null);
+
         // Set the current Scene to be able to unload it later
         Scene currentScene = SceneManager.GetActiveScene();
 
         // The Application loads the Scene in the background at the same time as the current Scene.
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Battle", LoadSceneMode.Additive);
+
 
         // Wait until the last operation fully loads to return anything
         while (!asyncLoad.isDone)
@@ -108,10 +97,12 @@ public class Fight : MonoBehaviour
             yield return null;
         }
 
-        // Move the GameObject (you attach this in the Inspector) to the newly loaded Scene
-        SceneManager.MoveGameObjectToScene(enemy, SceneManager.GetSceneByName("Battle"));
+
+        player.transform.position = new Vector3(0, 1, 1);
 
         
+        // Move the GameObject (you attach this in the Inspector) to the newly loaded Scene
+        SceneManager.MoveGameObjectToScene(enemy, SceneManager.GetSceneByName("Battle"));
 
 
         // Unload the previous Scene
@@ -119,9 +110,7 @@ public class Fight : MonoBehaviour
 
 
         PlayerUIManager enemyHB = enemy.GetComponentInChildren<PlayerUIManager>();
-        Debug.Log("Enemy HB" + enemyHB);
         GameObject enemyUIHealth = GameObject.Find("Fight UI/Enemy Health Bar");
-        Debug.Log("Enemy UI Health: " + enemyUIHealth);
         enemyHB.healthBar = enemyUIHealth.GetComponent<ProgressBar>();
 
         GameObject enemyStaminaBar = GameObject.Find("Fight UI/Enemy Health Bar/Stamina");
@@ -134,129 +123,8 @@ public class Fight : MonoBehaviour
         
     }
 
-    IEnumerator WaitForKeyDown(GameObject enemy, GameObject playerObj) {
-        
-        bool pressed = false;
-
-        bool playerWon = false;
-        int expAward = 0;
-
-        Debug.Log("Enemy found:" + enemy.name);
-
-        Debug.Log("Player found:" + playerObj.name);
-
-        Debug.Log("*********************");
-        while (!pressed) {
-            if (enemy == null) {
-                enemy = GameObject.FindGameObjectsWithTag("Enemy")[0];
-            }
-            if (playerObj == null) {
-                playerObj = GameObject.FindGameObjectsWithTag("Player")[0];
-                player = playerObj;
-            }
-            
-            // foreach (KeyCode k in codes) {
-                if (Input.GetKey("space")) {
-                    Debug.Log("Enemy found:");
-                    Debug.Log(enemy);
-                    Debug.Log("Player found:");
-                    Debug.Log(playerObj);
-                    pressed = true;
-
-                    Animal enemyAnimal = enemy.GetComponent<Animal>();
-                    Animal playerAnimal = playerObj.GetComponent<Animal>();
-
-                    if (playerAnimal.speedStat > enemyAnimal.speedStat) {
-                        // Player moves first
-
-                        enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-
-                        playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-
-                    } else if (playerAnimal.speedStat < enemyAnimal.speedStat) {
-                        // Enemy moves first
-                        playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-
-                        enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-                    } else {
-                        // Speed tie
-
-                        // Player moves first
-
-                        enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-
-                        playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
-                        yield return new WaitForSeconds(1);
-                    }
-                    
-                    
-                    pressed = false;
-
-                    if (enemy == null) {
-                        Debug.Log("Enemy Defeated");
-                        playerObj.GetComponent<PlayerMovement>().blockMovement = false;
-
-                        this.gm.AwardExp(enemyAnimal.expWorth);
-
-                        // Destroy(this.player);
-                        // SceneManager.LoadScene("Main");
-
-                        // var players = GameObject.FindGameObjectsWithTag("Player");
-                        // foreach (GameObject player in players) {
-                        //     Debug.Log("Player!!");
-                        //     Debug.Log(player);
-                        //     Debug.Log(player.GetComponent<Animal>().exp);
-                        // }
-                        // // Destroy(enemy);
-
-                        
-                        break; // Get out of input fight loop
-                    }
-                }
-            // }
-            yield return null; //you might want to only do this check once per frame -> yield return new WaitForEndOfFrame();
-        }
-    }
-
-
-    public void playerAttack(int power) {
-        Debug.Log("Attack power: " + power);
-    }
-    public void PlayerLightAttack() {
-        if (!attacking) {
-            attacking = true;
-            //if (!this.playerAnimate) {
-            //    GameObject localPlayer = GameObject.FindGameObjectsWithTag("Player")[0];
-            //    this.playerAnimate = localPlayer.GetComponentInChildren<Animator>();
-            //}
-
-
-            //gameObject.SetActive(true);
-
-
-            StartCoroutine(PlayAttackAnimations());
-
-        }
-    }
-
-    public void PlayerUtilityAttack(int power, int stamina)
-    {
-
-    }
-
-    public void EnemyLightAttack()
-    {
-
-    }
-
     IEnumerator PlayerOutOfStamina()
     {
-        Debug.Log("out of stamina");
         attacking = true;
         fightUI.HideChooseAttack();
 
@@ -281,6 +149,7 @@ public class Fight : MonoBehaviour
         enemyAnimal.GiveStamina(staminaRegen);
 
         fightUI.ShowChooseAttack();
+        CheckStaminaForAttacks();
 
         attacking = false;
 
@@ -289,6 +158,7 @@ public class Fight : MonoBehaviour
             StartCoroutine(PlayerOutOfStamina());
         }
     }
+
     public void StartTurnAttacks(string playerAttackType)
     {
         fightUI.HideChooseAttack();
@@ -296,6 +166,7 @@ public class Fight : MonoBehaviour
         if (!attacking)
         {
             attacking = true;
+
 
             if (!this.playerAnimate)
             {
@@ -309,16 +180,16 @@ public class Fight : MonoBehaviour
             Animal playerAnimal = player.GetComponent<Animal>();
             Animal enemyAnimal = enemy.GetComponent<Animal>();
 
-            CheckStaminaForAttacks();
-            
+            AttackType attackTypeE = (AttackType)Enum.Parse(typeof(AttackType), playerAttackType);
+
             // Player wins in speed tie
             if (playerAnimal.speedStat >= enemyAnimal.speedStat)
             {
-                StartCoroutine(PlayAttacksAndWait("player", playerAttackType, playerAnimal, enemyAnimal));
+                StartCoroutine(PlayAttacksAndWait("player", attackTypeE, playerAnimal, enemyAnimal));
             }
             else
             {
-                StartCoroutine(PlayAttacksAndWait("enemy", playerAttackType, playerAnimal, enemyAnimal));
+                StartCoroutine(PlayAttacksAndWait("enemy", attackTypeE, playerAnimal, enemyAnimal));
             }
            
         }
@@ -326,138 +197,70 @@ public class Fight : MonoBehaviour
         
     }
 
-    IEnumerator PlayAttacksAndWait(string fasterAnimal, string playerAttackType, Animal playerAnimal, Animal enemyAnimal)
+    IEnumerator PlayAttacksAndWait(string fasterAnimal, AttackType playerAttackType, Animal playerAnimal, Animal enemyAnimal)
     {
-        
         if (fasterAnimal == "player")
         {
             yield return StartCoroutine(TriggerPlayerAttack(playerAttackType, playerAnimal, enemyAnimal));
+            yield return StartCoroutine(CheckEnemyDead(enemyAnimal, playerAnimal.gameObject));
 
-            yield return StartCoroutine(TriggerEnemyAttack(playerAnimal, enemyAnimal));
+            if (enemyAnimal != null)
+            {
+                yield return StartCoroutine(TriggerEnemyAttack(playerAnimal, enemyAnimal));
+            }
         } else
         {
             yield return StartCoroutine(TriggerEnemyAttack(playerAnimal, enemyAnimal));
             
-            yield return StartCoroutine(TriggerPlayerAttack(playerAttackType, playerAnimal, enemyAnimal));
+            if (playerAnimal != null)
+            {
+                yield return StartCoroutine(TriggerPlayerAttack(playerAttackType, playerAnimal, enemyAnimal));
+            }
 
-            
+            yield return StartCoroutine(CheckEnemyDead(enemyAnimal, playerAnimal.gameObject));
+
+
         }
 
         
 
-        yield return null;
+        
 
         playerAnimal.GiveStamina(staminaRegen);
         enemyAnimal.GiveStamina(staminaRegen);
 
         fightUI.ShowChooseAttack();
+        CheckStaminaForAttacks();
 
         attacking = false;
 
-        if (playerAnimal.currentStamina < lowestStaminaCost)
+        if (playerAnimal.currentStamina < lowestStaminaCost && avaiableAttackUses == 0)
         {
-            Debug.Log("Start no stamina");
             StartCoroutine(PlayerOutOfStamina());
         }
+
+        yield return null;
     }
 
-    IEnumerator TriggerPlayerAttack(string playerAttackType, Animal playerAnimal, Animal enemyAnimal)
+    IEnumerator TriggerPlayerAttack(AttackType playerAttackType, Animal playerAnimal, Animal enemyAnimal)
     {
-        this.playerAnimate.SetTrigger("BasicAttack");
-        yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
-        yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-        //enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-        //playerAnimal.currentStamina -= 1;
-
-        playerAnimal.UseAttackOfType(playerAttackType, enemyAnimal);
-
-        CheckEnemyDead(enemyAnimal, playerAnimal.gameObject);
+        yield return StartCoroutine(playerAnimal.UseAttackOfType(playerAttackType, enemyAnimal));
+        
     }
 
     IEnumerator TriggerEnemyAttack(Animal playerAnimal, Animal enemyAnimal)
     {
-        this.enemyAnimate = enemyAnimal.gameObject.GetComponent<Animator>();
-        this.enemyAnimate.SetTrigger("BasicAttack");
-        yield return new WaitUntil(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
-        yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-        playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
-        enemyAnimal.currentStamina -= 1;
 
         // TODO: add in AI for picking move type
-        enemyAnimal.UseAttackOfType("lightAttack", playerAnimal);
+        yield return StartCoroutine(enemyAnimal.UseAttackOfType(AttackType.Light, playerAnimal));
 
     }
 
-
-    IEnumerator PlayAttackAnimations() {
-        GameObject enemy = GameObject.FindGameObjectsWithTag("Enemy")[0];
-        GameObject playerObj = GameObject.FindGameObjectsWithTag("Player")[0];
-
-        this.enemyAnimate = enemy.GetComponent<Animator>();
-
-        Animal enemyAnimal = enemy.GetComponent<Animal>();
-        Animal playerAnimal = playerObj.GetComponent<Animal>();
-
-        if (playerAnimal.speedStat > enemyAnimal.speedStat) {
-            // Player moves first
-            this.playerAnimate.SetTrigger("BasicAttack");
-            yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
-            yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-            enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-
-            CheckEnemyDead(enemyAnimal, playerObj);
-
-            if (this.enemyAnimate){
-                this.enemyAnimate.SetTrigger("BasicAttack");
-                yield return new WaitUntil(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
-                yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-                playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat); 
-            }
-
-        } else if (playerAnimal.speedStat < enemyAnimal.speedStat) {
-            // Enemy moves first
-            this.enemyAnimate.SetTrigger("BasicAttack");
-            yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-            playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat);
-
-            this.playerAnimate.SetTrigger("BasicAttack");
-            yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-            enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-            // yield return new WaitForSeconds(1);
-        } else {
-            // Speed tie
-
-            // Player moves first
-            this.playerAnimate.SetTrigger("BasicAttack");
-            // yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("DropKick"));
-
-            yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
-            yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attack"));
-            enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
-            // yield return new WaitForSeconds(1);
-
-            CheckEnemyDead(enemyAnimal, playerObj);
-
-            if (this.enemyAnimate){
-                this.enemyAnimate.SetTrigger("BasicAttack");
-                yield return new WaitUntil(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f );
-                yield return new WaitWhile(() => enemyAnimate.GetCurrentAnimatorStateInfo(0).IsName("Basic Attackk"));
-                playerAnimal.currentHealth -= Mathf.RoundToInt(enemyAnimal.attackStat); 
-            }
-
-            
-            // yield return new WaitForSeconds(1);
-            // }
-            
-        }
-
-        attacking = false;
-
-        
-    }
-
-    void CheckEnemyDead (Animal enemyAnimal, GameObject playerObj) {
+    IEnumerator CheckEnemyDead (Animal enemyAnimal, GameObject playerObj) {
         if (enemyAnimal.currentHealth < 1) {
+            PlayerUIManager healthBar = enemyAnimal.gameObject.GetComponent<PlayerUIManager>();
+            yield return new WaitUntil(() => healthBar.healthBarAtZero == true);
+
             playerObj.GetComponent<PlayerMovement>().blockMovement = false;
 
             GameObject.Find("Game Manager").GetComponent<GameManager>().AwardExp(5);
@@ -465,22 +268,26 @@ public class Fight : MonoBehaviour
             PlayerPrefs.SetInt("EnemyDead" + enemyAnimal.id, 1);
             Animal playerAnimal = player.GetComponent<Animal>();
 
+            playerAnimal.GiveStamina(1);
+
             PlayerPrefs.SetInt("PlayerCurrentHealth", playerAnimal.currentHealth);
             PlayerPrefs.SetFloat("PlayerCurrentStamina", playerAnimal.currentStamina);
 
-            playerAnimal.GiveStamina(1);
+            
 
+        }
+        else
+        {
+            yield return null;
         }
     }
 
 
     private void OnSceneUnloaded(Scene scene)
     {
-        Debug.Log("Scene loaded: " + scene.name);
         Scene currentScene = SceneManager.GetActiveScene();
         if (scene.name == "Main")
         {
-            Debug.Log("Tiggering");
             SetPlayerAttacks();
         }
 
@@ -488,7 +295,6 @@ public class Fight : MonoBehaviour
     void SetPlayerAttacks()
     {
         lowestStaminaCost = 999;
-        Debug.Log("Setting player attacks...");
 
         Attack savedLightAttack = JsonUtility.FromJson<Attack>(PlayerPrefs.GetString("PlayerLightAttack"));
         Attack savedHeavytack = JsonUtility.FromJson<Attack>(PlayerPrefs.GetString("PlayerHeavyAttack"));
@@ -519,20 +325,19 @@ public class Fight : MonoBehaviour
 
         foreach (Attack a in playerAnimal.currentAttacks)
         {
-            if (a.type == "lightAttack")
+            if (a.type == AttackType.Light)
             {
                 playerUI.SetLightAttack(a);
-            } else if (a.type == "heavyAttack")
+            } else if (a.type == AttackType.Heavy)
             {
                 playerUI.SetHeavyAttack(a);
-            } else if (a.type == "utilityAttack")
+            } else if (a.type == AttackType.Utility)
             {
                 playerUI.SetUtilityAttack(a);
             }
 
-            if (a.name != "-" && (a.staminaCost < lowestStaminaCost))
+            if (a.name != "-" && (a.staminaCost < lowestStaminaCost) && a.staminaCost != 0)
             {
-                Debug.Log("Lowest stamina cost: " + a.name + a.type +a.staminaCost.ToString());
                 lowestStaminaCost = a.staminaCost;
             }
         }
@@ -543,7 +348,7 @@ public class Fight : MonoBehaviour
 
     void CheckStaminaForAttacks()
     {
-
+        avaiableAttackUses = 0;
         GameObject localPlayer = GameObject.FindGameObjectsWithTag("Player")[0];
         Animal playerAnimal = localPlayer.GetComponent<Animal>();
 
@@ -551,15 +356,34 @@ public class Fight : MonoBehaviour
         Attack[] playerAttacks = playerAnimal.currentAttacks;
         PlayerUIManager playerUI = localPlayer.GetComponent<PlayerUIManager>();
 
+
         foreach (Attack a in playerAttacks)
         {
-            if (currentStamina < a.staminaCost)
+            if (a.staminaCost > 0)
             {
-                playerUI.DisableAttacks(a.type);
+                if (currentStamina < a.staminaCost)
+                {
+                    playerUI.DisableAttacks(a.type);
+                }
+                else
+                {
+                    playerUI.EnableAttacks(a.type);
+                }
             } else
             {
-                playerUI.EnableAttacks(a.type);
+                avaiableAttackUses += a.attackUses;
+
+                if (a.attackUses > 0)
+                {
+                    playerUI.EnableAttacks(a.type);
+
+                } else
+                {
+                    
+                    playerUI.DisableAttacks(a.type);
+                }
             }
+            
         }
 
     }

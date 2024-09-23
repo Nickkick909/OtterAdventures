@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,7 +9,6 @@ public class Animal : MonoBehaviour
     public int maxHealth;
     public int currentHealth;
     public float attackStat;
-    public float defenceStat;
     public float speedStat;
     public float currentStamina;
     public float maxStamina;
@@ -25,32 +25,38 @@ public class Animal : MonoBehaviour
 
     public GameManager gm;
 
+    private bool playerIsDead = false;
+
+    PlayerUIManager playerUIManager;
+
     // Start is called before the first frame update
     void Start()
     {
+        playerUIManager = gameObject.GetComponent<PlayerUIManager>();
+        playerIsDead = false;
+
         if (PlayerPrefs.GetInt("EnemyDead" + id) == 1) {
             Destroy(gameObject);
         }
 
         if (gameObject.tag == "Player") {
-            float x = PlayerPrefs.GetFloat("PlayerX", 0);
-            float y = PlayerPrefs.GetFloat("PlayerY", 4);
-            float z = PlayerPrefs.GetFloat("PlayerZ", 0);
+            float x = PlayerPrefs.GetFloat("PlayerX", -13);
+            float y = PlayerPrefs.GetFloat("PlayerY", 2);
+            float z = PlayerPrefs.GetFloat("PlayerZ", -7);
 
             gameObject.transform.transform.position = new Vector3(x, y, z);
 
-            maxHealth = PlayerPrefs.GetInt("PlayerMaxHealth", 10);
-            currentHealth = PlayerPrefs.GetInt("PlayerCurrentHealth", 10);
+            maxHealth = PlayerPrefs.GetInt("PlayerMaxHealth", maxHealth);
+            currentHealth = PlayerPrefs.GetInt("PlayerCurrentHealth", currentHealth);
 
-            maxStamina = PlayerPrefs.GetInt("PlayerMaxStamina", 3);
-            currentStamina = PlayerPrefs.GetFloat("PlayerCurrentStamina", 3);
+            maxStamina = PlayerPrefs.GetFloat("PlayerMaxStamina", maxStamina);
+            currentStamina = PlayerPrefs.GetFloat("PlayerCurrentStamina", currentStamina);
 
-            attackStat = PlayerPrefs.GetFloat("PlayerAttackStat", 1);
-            defenceStat = PlayerPrefs.GetFloat("PlayerDefenseStat",1);
-            speedStat = PlayerPrefs.GetFloat("PlayerSpeedStat", 1);
+            attackStat = PlayerPrefs.GetFloat("PlayerAttackStat", attackStat);
+            speedStat = PlayerPrefs.GetFloat("PlayerSpeedStat", speedStat);
             level = PlayerPrefs.GetInt("PlayerLevel", 1);
             exp = PlayerPrefs.GetInt("PlayerExp", 0);
-            expForLevel = PlayerPrefs.GetInt("PlayerExpForLevel", 20);
+            expForLevel = PlayerPrefs.GetInt("PlayerExpForLevel", expForLevel);
 
             if (gm)
             {
@@ -63,30 +69,25 @@ public class Animal : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // TextMesh[] healthbar = gameObject.GetComponentsInChildren<TextMesh>();
-
-        // if (healthbar.Length > 0) {
-        //     healthbar[0].text = this.currentHealth + "HP";
-        // }
-        // Debug.Log(healthbar);
-
-        // Debug.Log(healthbar.GetComponent<TextMesh>());
-
-        
+        if (playerUIManager != null)
+        {
+            playerUIManager.UpdateHealthBar((((float)this.currentHealth / (float)this.maxHealth) * 100));
+            playerUIManager.UpdateStaminaBar(this.currentStamina / this.maxStamina);
+        }
 
         if (this.currentHealth < 1) {
-
-            if (gameObject.tag == "Enemy") {
-                PlayerPrefs.SetInt("EnemyDead" + id, 1);
-
-                Destroy(gameObject);
-            } else if (gameObject.tag == "Player")
+            if (playerUIManager.healthBarAtZero)
             {
-                PlayerPrefs.DeleteAll();
+                if (gameObject.tag == "Enemy") {
+                    PlayerPrefs.SetInt("EnemyDead" + id, 1);
 
-                SceneManager.LoadScene("GameOver");
+                    Destroy(gameObject);
+                } else if (gameObject.tag == "Player" && !playerIsDead)
+                {
+                    playerIsDead = true;
+                    StartCoroutine("SendToGameOverScreen");
+                }
             }
-
 
         }
 
@@ -102,65 +103,127 @@ public class Animal : MonoBehaviour
             gm.GetComponent<GameManager>().playerUI = gameObject.GetComponent<PlayerUIManager>();
         }
 
-        if (gameObject.GetComponent<PlayerUIManager>()){
-            gameObject.GetComponent<PlayerUIManager>().healthVal = (int)( ((float)this.currentHealth / (float)this.maxHealth) * 100);
-            gameObject.GetComponent<PlayerUIManager>().staminaVal = this.currentStamina / this.maxStamina;
-        }
-    }
-
-
-  
-
-    public void UseLightAttack(Attack useAttack, Animal target)
-    {
-        // Get info about light attack
-        //Attack useAttack = GetAttackInfo("lightAttack");
-
-        if (useAttack != null)
-        {
-            target.TakeDamage(useAttack.attackPower);
-            UseStamina(useAttack.staminaCost);
-        }
         
     }
 
-    public void UseHeavyAttack(Attack useAttack, Animal target)
+
+    IEnumerator SendToGameOverScreen()
     {
+        yield return new WaitForSeconds(1);
 
-    }
+        Scene currentScene = SceneManager.GetActiveScene();
 
-    public void UseUtilityAttack(Attack useAttack, Animal target)
-    {
-        // Get info about light attack
-        //Attack useAttack = GetAttackInfo("lightAttack");
+        PlayerPrefs.DeleteAll();
 
-        if (useAttack != null)
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("GameOver");
+
+
+        // Wait until the last operation fully loads to return anything
+        while (!asyncLoad.isDone)
         {
-            target.TakeDamage(useAttack.attackPower);
-            UseStamina(useAttack.staminaCost);
+            yield return null;
         }
+
+        //yield return new WaitForSeconds(1);
+
+        // Unload the previous Scene
+        //SceneManager.UnloadSceneAsync(currentScene);
     }
 
-    public void UseAttackOfType(string attackType, Animal target)
+    public IEnumerator UseAttackOfType(AttackType attackType, Animal target)
     {
         foreach (Attack a in currentAttacks)
         {
             if (a.type == attackType)
             {
-                if (attackType == "lightAttack")
+                if (attackType == AttackType.Light)
                 {
-                    UseLightAttack(a, target);
-                } else if (attackType == "heavyAttack")
+                    yield return StartCoroutine(UseLightAttack(a, target));
+                }
+                else if (attackType == AttackType.Heavy)
                 {
-                    UseHeavyAttack(a, target);
-                } else if (attackType == "utilityAttack")
+                    yield return StartCoroutine(UseHeavyAttack(a, target));
+                }
+                else if (attackType == AttackType.Utility)
                 {
-                    UseUtilityAttack(a, target);
+                    yield return StartCoroutine(UseUtilityAttack(a, target));
                 }
             }
         }
 
+        yield return null;
+
     }
+
+    public IEnumerator UseLightAttack(Attack useAttack, Animal target)
+    {
+        Animator playerAnimate = gameObject.GetComponent<Animator>();
+        playerAnimate.SetTrigger("BasicAttack");
+
+        yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
+        yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("BasicAttack"));
+        //enemyAnimal.currentHealth -= Mathf.RoundToInt(playerAnimal.attackStat);
+
+        //playerAnimal.currentStamina -= 1;
+        // Get info about light attack
+        //Attack useAttack = GetAttackInfo("lightAttack");
+
+        if (useAttack != null)
+        {
+            target.TakeDamage(useAttack.attackPower);
+            UseStamina(useAttack.staminaCost);
+        }
+
+        yield return null;
+        
+    }
+
+    public IEnumerator UseHeavyAttack(Attack useAttack, Animal target)
+    {
+        Animator playerAnimate = gameObject.GetComponent<Animator>();
+        playerAnimate.SetTrigger("BasicAttack");
+
+        yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
+        yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("BasicAttack"));
+
+        if (useAttack != null)
+        {
+            target.TakeDamage(useAttack.attackPower);
+            UseStamina(useAttack.staminaCost);
+        }
+    }
+
+    public IEnumerator UseUtilityAttack(Attack useAttack, Animal target)
+    {
+        Animator playerAnimate = gameObject.GetComponent<Animator>();
+        playerAnimate.SetTrigger("UtilityAttack");
+
+        yield return new WaitUntil(() => playerAnimate.GetCurrentAnimatorStateInfo(0).normalizedTime <= 1.0f);
+        yield return new WaitWhile(() => playerAnimate.GetCurrentAnimatorStateInfo(0).IsName("UtilityAttack"));
+
+        if (useAttack != null)
+        {
+            if (useAttack.typeHeal == HealType.Stamina)
+            {
+                GiveStamina(useAttack.healPower);
+                UseAttackUse(useAttack);
+            } else if (useAttack.typeHeal == HealType.Health)
+            {
+                UseAttackUse(useAttack);
+                Heal(useAttack.healPower);
+            } else
+            {
+                // Heal Type == Both
+                UseAttackUse(useAttack);
+
+                GiveStamina(useAttack.healPower);
+                Heal(useAttack.healPower);
+            }
+            
+        }
+    }
+
+    
 
     public void TakeDamage(int damage)
     {
@@ -175,20 +238,128 @@ public class Animal : MonoBehaviour
     public void Heal(int hp)
     {
         currentHealth += hp;
+
+        if (currentHealth > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
     }
     public void GiveStamina(float stamina)
     {
         currentStamina += stamina;
+
+        if (currentStamina > maxStamina)
+        {
+            currentStamina = maxStamina;
+        }
     }
 
+    public void UseAttackUse(Attack useAttack)
+    {
+        foreach (Attack a in currentAttacks)
+        {
+            if (a.name == useAttack.name)
+            {
+                Debug.Log("Lower attack uses: " + a.name);
+                a.attackUses -= 1;
+
+                playerUIManager.SetUtilityAttack(a);
+            }
+        }
+    }
+
+    public void LevelUp()
+    {
+        int currHealthChange = 0;
+        int maxHealthChange = 0;
+        float currStaminaChanged = 0;
+        float maxStaminaChanged = 0;
+
+        exp -= expForLevel;
+        level += 1;
+        expForLevel += 5;
+
+        if (level % 5 == 0)
+        {
+            maxHealthChange = 5;
+            currHealthChange = (maxHealth + maxHealthChange) - currentHealth;
+            maxStaminaChanged = 1;
+            currStaminaChanged =  (maxStamina + maxStaminaChanged) - currentStamina;
+        }
+        else if (level % 2 == 0)
+        {
+            maxHealthChange = 2;
+            currHealthChange = (maxHealth + maxHealthChange) - currentHealth;
+            maxStaminaChanged = 0.5f;
+            currStaminaChanged = 0.5f;
+        } else
+        {
+            maxHealthChange = 2;
+            currHealthChange = 2;
+            maxStaminaChanged = 0;
+            currStaminaChanged = 0.5f;
+        }
+
+        maxHealth += maxHealthChange;
+        currentHealth += currHealthChange;
+        maxStamina += maxStaminaChanged;
+        currentStamina += currStaminaChanged;
+
+        if (currentHealth > maxHealth) { currentHealth = maxHealth; }
+
+        // Save current attacks (mostly for saving attack uses) after the battle
+
+        foreach (Attack a in currentAttacks)
+        {
+            Debug.Log("Attack: " + a.name + " uses: " + a.attackUses);
+            if (a.name != "-" && a.staminaCost == 0)
+            {
+                a.attackUses = a.maxAttackUses;
+
+                switch (a.type)
+                {
+                    case AttackType.Light:
+                        PlayerPrefs.SetString("PlayerLightAttack", JsonUtility.ToJson(a));
+                        break;
+                    case AttackType.Heavy:
+                        PlayerPrefs.SetString("PlayerHeavyAttack", JsonUtility.ToJson(a));
+                        break;
+                    case AttackType.Utility:
+                        PlayerPrefs.SetString("PlayerUtilityAttack", JsonUtility.ToJson(a));
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+        }
+
+
+        FightUIController fightUI = GameObject.FindObjectOfType<FightUIController>();
+
+        fightUI?.SetLevelUpStats(currHealthChange, maxHealthChange, currStaminaChanged, maxStaminaChanged);
+
+
+
+        PlayerPrefs.SetInt("PlayerMaxHealth", maxHealth);
+        PlayerPrefs.SetInt("PlayerCurrentHealth", currentHealth);
+        PlayerPrefs.SetFloat("PlayerMaxStamina", maxStamina);
+        PlayerPrefs.SetFloat("PlayerCurrentStamina", currentStamina);
+        PlayerPrefs.SetFloat("PlayerAttackStat", attackStat);
+        PlayerPrefs.SetFloat("PlayerSpeedStat", speedStat);
+        PlayerPrefs.SetInt("PlayerLevel", level);
+        PlayerPrefs.SetInt("PlayerExp", exp);
+        PlayerPrefs.SetInt("PlayerExpForLevel", expForLevel);
+
+        playerUIManager.SetExp(exp, expForLevel);
+        playerUIManager.SetLevel(level);
+    }
 
     public void GetCurrentCondition()
     {
-        Debug.Log("Checking current condition");
         int savedHealth = PlayerPrefs.GetInt("PlayerCurrentHealth");
         float savedStamina = PlayerPrefs.GetFloat("PlayerCurrentStamina");
 
-        Debug.Log("Health: " + savedHealth.ToString() + "  Stamina: " + savedStamina.ToString());
         if (savedHealth != 0)
         {
             this.currentHealth = savedHealth;

@@ -10,7 +10,8 @@ public class GameManager : MonoBehaviour
 
     public PlayerUIManager playerUI;
 
-    public GameObject levelUpUI;
+    
+    public FightUIController fightUIController;
 
     // Start is called before the first frame update
     void Start()
@@ -27,22 +28,39 @@ public class GameManager : MonoBehaviour
     public void AwardExp(int exp) {
         Animal playerAnimal = this.player.GetComponent<Animal>();
 
+        // Save current attacks (mostly for saving attack uses) after the battle
+
+        foreach (Attack a in playerAnimal.currentAttacks)
+        {
+            Debug.Log("Attack: " + a.name + " uses: " + a.attackUses);
+            if (a.name != "-")
+            {
+                switch (a.type)
+                {
+                    case AttackType.Light:
+                        PlayerPrefs.SetString("PlayerLightAttack", JsonUtility.ToJson(a));
+                        break;
+                    case AttackType.Heavy:
+                        PlayerPrefs.SetString("PlayerHeavyAttack", JsonUtility.ToJson(a));
+                        break;
+                    case AttackType.Utility:
+                        PlayerPrefs.SetString("PlayerUtilityAttack", JsonUtility.ToJson(a));
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+        }
+
         playerAnimal.exp += exp;
         PlayerPrefs.SetInt("PlayerExp", playerAnimal.exp);
-        Debug.Log("Experince awarded to player: " + exp);
 
         if (playerAnimal.exp >= playerAnimal.expForLevel) {
-            playerAnimal.exp -= playerAnimal.expForLevel;
-            playerAnimal.level += 1;
-
-            PlayerPrefs.SetInt("PlayerExp", playerAnimal.exp);
-            PlayerPrefs.SetInt("PlayerLevel", playerAnimal.level);
-
-            playerUI.SetExp(playerAnimal.exp, playerAnimal.expForLevel);
-            playerUI.SetLevel(playerAnimal.level);
+            playerAnimal.LevelUp();
 
             if (SceneManager.GetActiveScene().name == "Battle") {
-                StartCoroutine(ShowLevelUpUI());
+                StartCoroutine(fightUIController.ShowLevelUpUI());
             }
         } else if (SceneManager.GetActiveScene().name == "Battle" ) {
             playerUI.SetExp(playerAnimal.exp, playerAnimal.expForLevel);
@@ -59,49 +77,6 @@ public class GameManager : MonoBehaviour
         
     }
 
-    IEnumerator ShowLevelUpUI()
-    {
-        Debug.Log("Show level up start");
-        levelUpUI.SetActive(true);
-
-        yield return new WaitForSeconds(2);
-
-        levelUpUI.SetActive(false);
-
-        StartCoroutine("CheckLevelUpMoves");
-    }
-
-    IEnumerator CheckLevelUpMoves()
-    {
-        Animal playerAnimal = this.player.GetComponent<Animal>();
-
-        int currentLevel = playerAnimal.level;
-
-        foreach (Attack a in playerAnimal.learnableAttacks)
-        {
-            if (a.levelUnlocked == currentLevel)
-            {
-                switch (a.type)
-                {
-                    case "lightAttack":
-                        PlayerPrefs.SetString("PlayerLightAttack", JsonUtility.ToJson(a));
-                        break;
-                    case "heavyAttack":
-                        PlayerPrefs.SetString("PlayerHeavyAttack", JsonUtility.ToJson(a));
-                        break;
-                    case "utilityAttack":
-                        PlayerPrefs.SetString("PlayerUtilityAttack", JsonUtility.ToJson(a));
-                        break;
-                    default:
-                        break;
-                }
-                    
-            }
-        }
-
-        yield return null;
-
-        SceneManager.LoadScene("Main");
-    }
-
+    
+   
 }

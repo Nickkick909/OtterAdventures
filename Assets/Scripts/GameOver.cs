@@ -12,7 +12,7 @@ public class GameOver : MonoBehaviour
     {
         Animator anim = otter.GetComponent<Animator>();
         anim.Play("Sit");
-        anim.Play("Eyes_Dead");
+        anim.Play("Eyes_Cry");
     }
 
     public void PlayAgain()
